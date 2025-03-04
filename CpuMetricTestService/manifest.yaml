@@ -12,6 +12,7 @@ spec:
       labels:
         app: cpu-metric-test
     spec:
+      serviceAccountName: cpu-metric-test-svc
       containers:
       - name: cpu-metric-test
         image: acrfhl202503.azurecr.io/cpu-metric-test:latest
@@ -26,6 +27,42 @@ spec:
                 operator: In
                 values:
                 - app
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cpu-metric-test-svc
+  namespace: rapi-cpu-experiments
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: metric-role
+    namespace: rapi-cpu-experiments
+rules:
+    - apiGroups:
+        - ''
+      resources:
+        - 'pods'
+      verbs:
+        - 'create'
+        - 'delete'
+        - 'get'
+        - 'list'
+        - 'patch'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: metric-rolebind
+subjects:
+    - kind: ServiceAccount
+      name: cpu-metric-test-svc
+      namespace: rapi-cpu-experiments
+roleRef:
+    kind: Role
+    name: metric-role
+    apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: v1
 kind: Service
