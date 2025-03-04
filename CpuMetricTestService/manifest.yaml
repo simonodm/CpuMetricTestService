@@ -17,6 +17,15 @@ spec:
         image: acrfhl202503.azurecr.io/cpu-metric-test:latest
         ports:
         - containerPort: 80
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: workload
+                operator: In
+                values:
+                - app
 ---
 apiVersion: v1
 kind: Service
