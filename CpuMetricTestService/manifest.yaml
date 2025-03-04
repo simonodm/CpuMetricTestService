@@ -17,7 +17,6 @@ spec:
         image: acrfhl202503.azurecr.io/cpu-metric-test:latest
         ports:
         - containerPort: 8080
-        - containerPort: 8081
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -36,10 +35,8 @@ spec:
   selector:
     app: cpu-metric-test
   ports:
-  - protocol: TCP
+  - name: http
+    protocol: TCP
     port: 80
     targetPort: 8080
-  - protocol: TCP
-    port: 443
-    targetPort: 8081
   type: LoadBalancer

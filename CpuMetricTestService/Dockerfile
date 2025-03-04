@@ -8,7 +8,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0-nanoserver-ltsc2022 AS base
 WORKDIR /app
 
 EXPOSE 8080
-EXPOSE 8081
 
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:8.0-nanoserver-ltsc2022 AS build
@@ -29,7 +28,7 @@ RUN dotnet publish "./CpuMetricTestService.csproj" -c %BUILD_CONFIGURATION% -o /
 FROM base AS final
 WORKDIR /app
 
-ENV ASPNETCORE_URLS=http://+:8080;https://+:8081
+ENV ASPNETCORE_URLS=http://+:8080
 COPY --from=publish /app/publish .
 
 ENTRYPOINT ["dotnet", "CpuMetricTestService.dll"]
