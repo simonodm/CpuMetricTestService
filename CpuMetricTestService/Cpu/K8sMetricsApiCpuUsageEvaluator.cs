@@ -15,7 +15,7 @@ namespace CpuMetricTestService.Cpu
 
             var cpuUsage = metrics.Items
                 .FirstOrDefault(metric => metric.Metadata.Labels.ContainsKey("app")
-                                          && metric.Metadata.Labels["app"] == currentPodName)?
+                                          && metric.Metadata.Name == currentPodName)?
                 .Containers
                 .FirstOrDefault()?
                 .Usage["cpu"];
