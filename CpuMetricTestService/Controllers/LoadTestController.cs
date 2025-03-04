@@ -9,7 +9,8 @@ namespace CpuMetricTestService.Controllers
         [Route("/api/loadtest")]
         public IActionResult Get([FromQuery] int n = 10000)
         {
-            return Ok(Fibonacci.Calculate(n));
+            Parallel.ForEach(Enumerable.Range(0, 10), _ => Fibonacci.Calculate(n));
+            return Ok();
         }
     }
 }
