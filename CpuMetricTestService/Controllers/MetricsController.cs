@@ -1,4 +1,5 @@
 ﻿using CpuMetricTestService.Cpu;
+using CpuMetricTestService.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CpuMetricTestService.Controllers
@@ -23,11 +24,21 @@ namespace CpuMetricTestService.Controllers
 
             foreach (var evaluator in evaluators)
             {
-                var value = await evaluator.EvaluateAsync();
-                result.Add(evaluator.GetType().Name, value);
+                try
+                {
+                    var value = await evaluator.EvaluateAsync();
+                    result.Add(evaluator.GetType().Name, value);
+                }
+                catch (Exception ex)
+                {
+                    result.Add(evaluator.GetType().Name, ex.ToString());
+                }
             }
 
-            return Ok(result);
+            return Ok(new CpuUsageStatistics
+            {
+                Sources = result
+            });
         }
     }
 }
