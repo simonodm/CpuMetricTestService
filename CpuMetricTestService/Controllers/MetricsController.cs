@@ -44,7 +44,7 @@ namespace CpuMetricTestService.Controllers
         [HttpGet("cpu")]
         public async Task<IActionResult> GetCpu()
         {
-            var evaluator = _serviceProvider.GetRequiredService<ResourceMonitoringCpuUsageEvaluator>();
+            var evaluator = _serviceProvider.GetServices<ICpuUsageEvaluator>().FirstOrDefault(s => s.GetType() == typeof(ResourceMonitoringCpuUsageEvaluator));
             return Ok(await evaluator.EvaluateAsync());
         }
     }
