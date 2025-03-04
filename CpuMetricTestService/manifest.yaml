@@ -7,6 +7,13 @@ spec:
   selector:
     matchLabels:
       app: cpu-metric-test
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+    - name: https
+      port: 443
+      protocol: TCP
   template:
     metadata:
       labels:
