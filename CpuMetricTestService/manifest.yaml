@@ -14,10 +14,15 @@ spec:
     spec:
       serviceAccountName: cpu-metric-test-svc
       containers:
-      - name: cpu-metric-test
-        image: acrfhl202503.azurecr.io/cpu-metric-test:latest
-        ports:
-        - containerPort: 8080
+        - name: cpu-metric-test
+          image: acrfhl202503.azurecr.io/cpu-metric-test:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

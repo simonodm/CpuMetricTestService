@@ -1,4 +1,4 @@
-﻿using k8s;
+﻿using CpuMetricTestService.Cpu;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CpuMetricTestService.Controllers
@@ -7,20 +7,27 @@ namespace CpuMetricTestService.Controllers
     [Route("/.metrics")]
     public class MetricsController : Controller
     {
+        private IServiceProvider _serviceProvider;
+
+        public MetricsController(IServiceProvider serviceProvider)
+        {
+            _serviceProvider = serviceProvider;
+        }
+
         [HttpGet("cpu")]
         public async Task<IActionResult> GetCpu()
         {
-            var config = KubernetesClientConfiguration.InClusterConfig();
-            var client = new Kubernetes(config);
+            var evaluators = _serviceProvider.GetServices<ICpuUsageEvaluator>();
 
-            var metrics = await client.GetKubernetesPodsMetricsAsync();
+            var result = new Dictionary<string, object?>();
 
-            var podCpus = metrics.Items
-                .Where(metric => metric.Metadata.Labels.ContainsKey("app"))
-                .ToDictionary(metric => metric.Metadata.Name,
-                    metric => metric.Containers.FirstOrDefault()?.Usage["cpu"]);
+            foreach (var evaluator in evaluators)
+            {
+                var value = await evaluator.EvaluateAsync();
+                result.Add(evaluator.GetType().Name, value);
+            }
 
-            return Ok(podCpus);
+            return Ok(result);
         }
     }
 }

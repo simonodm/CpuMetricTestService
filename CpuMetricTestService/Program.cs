@@ -1,3 +1,4 @@
+using CpuMetricTestService.Cpu;
 
 namespace CpuMetricTestService
 {
@@ -13,6 +14,9 @@ namespace CpuMetricTestService
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddResourceMonitoring();
+            builder.Services.AddCpuEvaluators();
 
             var app = builder.Build();
 
