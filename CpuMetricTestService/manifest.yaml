@@ -4,6 +4,10 @@ metadata:
   name: cpu-metric-test-deployment
 spec:
   replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 2
   selector:
     matchLabels:
       app: cpu-metric-test
