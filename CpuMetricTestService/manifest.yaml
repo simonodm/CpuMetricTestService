@@ -35,13 +35,12 @@ metadata:
   namespace: rapi-cpu-experiments
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
     name: metric-role
-    namespace: rapi-cpu-experiments
 rules:
     - apiGroups:
-        - ''
+        - 'metrics.k8s.io'
       resources:
         - 'pods'
       verbs:
@@ -52,7 +51,7 @@ rules:
         - 'patch'
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
     name: metric-rolebind
 subjects:
@@ -60,7 +59,7 @@ subjects:
       name: cpu-metric-test-svc
       namespace: rapi-cpu-experiments
 roleRef:
-    kind: Role
+    kind: ClusterRole
     name: metric-role
     apiGroup: rbac.authorization.k8s.io
 ---
