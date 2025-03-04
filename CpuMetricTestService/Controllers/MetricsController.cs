@@ -1,6 +1,4 @@
-﻿using CpuMetricTestService.Model;
-using k8s;
-using Microsoft.AspNetCore.Http.HttpResults;
+﻿using k8s;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CpuMetricTestService.Controllers
@@ -16,7 +14,13 @@ namespace CpuMetricTestService.Controllers
             var client = new Kubernetes(config);
 
             var metrics = await client.GetKubernetesPodsMetricsAsync();
-            return Ok(metrics);
+
+            var podCpus = metrics.Items
+                .Where(metric => metric.Metadata.Labels.ContainsKey("app"))
+                .ToDictionary(metric => metric.Metadata.Name,
+                    metric => metric.Containers.FirstOrDefault()?.Usage["cpu"]);
+
+            return Ok(podCpus);
         }
     }
 }
