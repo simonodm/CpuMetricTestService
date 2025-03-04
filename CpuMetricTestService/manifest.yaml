@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cpu-metric-test-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cpu-metric-test
+  template:
+    metadata:
+      labels:
+        app: cpu-metric-test
+    spec:
+      containers:
+      - name: cpu-metric-test
+        image: acrfhl202503.azurecr.io/cpu-metric-test:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cpu-metric-test-service
+spec:
+  selector:
+    app: cpu-metric-test
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: LoadBalancer

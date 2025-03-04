@@ -1,0 +1,6 @@
+@CpuMetricTestService_HostAddress = http://localhost:5140
+
+GET {{CpuMetricTestService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
