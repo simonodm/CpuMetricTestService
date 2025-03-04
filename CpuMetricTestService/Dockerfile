@@ -28,9 +28,8 @@ RUN dotnet publish "./CpuMetricTestService.csproj" -c %BUILD_CONFIGURATION% -o /
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
 
-EXPOSE 80
-EXPOSE 443
+ENV ASPNETCORE_URLS=http://+:8080;https://+:8081
+COPY --from=publish /app/publish .
 
 ENTRYPOINT ["dotnet", "CpuMetricTestService.dll"]

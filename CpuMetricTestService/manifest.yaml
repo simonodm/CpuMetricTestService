@@ -7,13 +7,6 @@ spec:
   selector:
     matchLabels:
       app: cpu-metric-test
-  ports:
-    - name: http
-      port: 80
-      protocol: TCP
-    - name: https
-      port: 443
-      protocol: TCP
   template:
     metadata:
       labels:
@@ -23,7 +16,8 @@ spec:
       - name: cpu-metric-test
         image: acrfhl202503.azurecr.io/cpu-metric-test:latest
         ports:
-        - containerPort: 80
+        - containerPort: 8080
+        - containerPort: 8081
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -44,5 +38,8 @@ spec:
   ports:
   - protocol: TCP
     port: 80
-    targetPort: 80
+    targetPort: 8080
+  - protocol: TCP
+    port: 443
+    targetPort: 8081
   type: LoadBalancer
