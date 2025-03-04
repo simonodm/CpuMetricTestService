@@ -15,8 +15,8 @@ namespace CpuMetricTestService.Controllers
             _serviceProvider = serviceProvider;
         }
 
-        [HttpGet("cpu")]
-        public async Task<IActionResult> GetCpu()
+        [HttpGet("debug")]
+        public async Task<IActionResult> GetDebug()
         {
             var evaluators = _serviceProvider.GetServices<ICpuUsageEvaluator>();
 
@@ -39,6 +39,13 @@ namespace CpuMetricTestService.Controllers
             {
                 Sources = result
             });
+        }
+
+        [HttpGet("cpu")]
+        public async Task<IActionResult> GetCpu()
+        {
+            var evaluator = _serviceProvider.GetRequiredService<ResourceMonitoringCpuUsageEvaluator>();
+            return Ok(await evaluator.EvaluateAsync());
         }
     }
 }

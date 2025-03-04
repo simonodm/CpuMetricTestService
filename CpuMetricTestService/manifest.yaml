@@ -23,6 +23,13 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+          resources:
+            limits:
+              cpu: 200m
+              memory: 500Mi
+            requests:
+              cpu: 100m
+              memory: 200Mi
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
