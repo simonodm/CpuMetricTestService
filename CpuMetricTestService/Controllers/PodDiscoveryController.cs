@@ -17,9 +17,10 @@ namespace CpuMetricTestService.Controllers
                 var client = new Kubernetes(config);
 
                 // List all pods in the default namespace
-                var pods = await client.CoreV1.ListNamespacedPodAsync("default");
+                var pods = await client.CoreV1.ListNamespacedPodAsync("rapi-cpu-experiments");
 
-                var currentPodName = Environment.GetEnvironmentVariable("HOSTNAME");
+                var currentPodName = Environment.GetEnvironmentVariable("POD_NAME");
+                var hostName = Environment.GetEnvironmentVariable("HOST_NAME");
 
                 if (pods == null || pods.Items.Count == 0)
                 {
@@ -27,7 +28,7 @@ namespace CpuMetricTestService.Controllers
                 }
 
                 return Ok(
-                    $"There are {pods.Items.Count} pods available. This request hit pod {currentPodName}. All available pods are: {string.Join(", ", pods.Items.Select(a => a.Metadata.Name))}");
+                    $"There are {pods.Items.Count} pods available. This request hit pod {currentPodName} {hostName}. All available pods are: {string.Join(", ", pods.Items.Select(a => a.Metadata.Name))}");
             }
             catch (Exception e)
             {
