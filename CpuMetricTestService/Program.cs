@@ -17,6 +17,7 @@ namespace CpuMetricTestService
 
             builder.Services.AddResourceMonitoring();
             builder.Services.AddCpuEvaluators();
+            builder.Services.AddHttpClient();
 
             var app = builder.Build();
 
