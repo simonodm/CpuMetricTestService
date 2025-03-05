@@ -6,6 +6,7 @@
         {
             serviceCollection.AddSingleton<ICpuUsageEvaluator, ResourceMonitoringCpuUsageEvaluator>();
             serviceCollection.AddSingleton<ICpuUsageEvaluator, K8sMetricsApiCpuUsageEvaluator>();
+            serviceCollection.AddSingleton<IResourceMonitoringCpuUsageEvaluator, ResourceMonitoringCpuUsageEvaluator>();
 
             return serviceCollection;
         }
