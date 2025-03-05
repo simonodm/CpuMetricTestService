@@ -39,7 +39,7 @@ namespace CpuMetricTestService.Controllers
                 foreach (var pod in pods.Items)
                 {
                     var podIp = pod.Status.PodIP;
-                    var cpuMetric = await _httpClient.GetFromJsonAsync<object>($"http://{podIp}/.metrics/cpu");
+                    var cpuMetric = await _httpClient.GetFromJsonAsync<object>($"http://{podIp}:8080/.metrics/cpu");
                     podCpuMetrics.Add(new { PodName = pod.Metadata.Name, PodIP = podIp, CpuMetric = cpuMetric });
                 }
 
