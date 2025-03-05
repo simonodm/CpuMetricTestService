@@ -23,6 +23,10 @@ namespace CpuMetricTestService
             builder.Services.AddTransient<CpuProxyMiddleware>();
             builder.Services.AddTransient<HeaderEnrichmentMiddleware>();
 
+            builder.Services.AddSingleton<ClusterMetricProvider>();
+
+            builder.Services.AddHostedService<ClusterMetricCollectorHostedService>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

@@ -8,11 +8,19 @@ namespace CpuMetricTestService.Controllers
     [Route("/.metrics")]
     public class MetricsController : Controller
     {
-        private IServiceProvider _serviceProvider;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly ClusterMetricProvider _clusterMetricProvider;
 
-        public MetricsController(IServiceProvider serviceProvider)
+        public MetricsController(IServiceProvider serviceProvider, ClusterMetricProvider clusterMetricProvider)
         {
             _serviceProvider = serviceProvider;
+            _clusterMetricProvider = clusterMetricProvider;
+        }
+
+        [HttpGet("clusterHealth")]
+        public IActionResult GetClusterHealth()
+        {
+            return Ok(_clusterMetricProvider.GetClusterMetrics());
         }
 
         [HttpGet("debug")]
