@@ -11,11 +11,6 @@ namespace CpuMetricTestService.Controllers
     {
         private readonly HttpClient _httpClient;
 
-        // midleware
-        // check current cpu for pod
-        // check request metadata - count
-        // 
-
         public PodDiscoveryController(HttpClient httpClient)
         {
             _httpClient = httpClient;
