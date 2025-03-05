@@ -23,7 +23,6 @@ namespace CpuMetricTestService.Controllers
 
         [HttpGet]
         [Route("/pods")]
-        [MiddlewareFilter(typeof(CpuProxyMiddlewareBuilder))]
         public async Task<IActionResult> GetPods()
         {
             try
