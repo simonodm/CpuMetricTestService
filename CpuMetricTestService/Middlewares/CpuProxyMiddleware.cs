@@ -41,7 +41,8 @@ namespace CpuMetricTestService.Middlewares
             var podsResponse = await _httpClient.GetAsync("http://localhost:8080/pods");
             podsResponse.EnsureSuccessStatusCode();
             var pods = await podsResponse.Content.ReadFromJsonAsync<PodCpuMetricsResponse>();
-             _logger.LogInformation("Pods response: {@PodsResponse}", pods);
+            _logger.LogInformation($"Pods response: {podsResponse.Content}");
+            _logger.LogInformation($"Current pod IP: {Environment.GetEnvironmentVariable("POD_IP")}");
 
             var podWithLowestCpu = pods?.CpuMetrics
                 .OrderBy(p => p.CpuMetric.CpuUsagePercentage)
