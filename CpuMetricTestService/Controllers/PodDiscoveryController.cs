@@ -1,5 +1,6 @@
 ﻿using k8s;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace CpuMetricTestService.Controllers
 {
@@ -26,9 +27,12 @@ namespace CpuMetricTestService.Controllers
                 {
                     return NoContent();
                 }
-
-                return Ok(
-                    $"There are {pods.Items.Count} pods available. This request hit pod {currentPodName} {hostName}. All available pods are: {string.Join(", ", pods.Items.Select(a => a.Metadata.Name))}");
+;
+                return Ok(new
+                {
+                    Pods = pods.Items.Select(a => JsonSerializer.Serialize(a, new JsonSerializerOptions { WriteIndented = true })),
+                    Info = $"There are {pods.Items.Count} pods available. This request hit pod {currentPodName} {hostName}. All available pods are: {string.Join(", ", pods.Items.Select(a => a.Metadata.Name))}"
+                });
             }
             catch (Exception e)
             {
