@@ -15,11 +15,7 @@
 
             context.Response.OnStarting(() =>
             {
-                context.Request.Headers.TryGetValue("WasAlreadyForwarded", out var wasProxied);
-
-                context.Response.Headers.Append("x-pod-name", Environment.GetEnvironmentVariable("POD_NAME"));
-                context.Response.Headers.Append("x-was-proxied", wasProxied.Count == 0 ? "false" : wasProxied);
-
+                context.Response.Headers.TryAdd("x-pod-name", Environment.GetEnvironmentVariable("POD_NAME"));
                 return Task.CompletedTask;
             });
 

@@ -3,11 +3,11 @@ kind: Deployment
 metadata:
   name: cpu-metric-test-deployment
 spec:
-  replicas: 2
+  replicas: 5
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 2
+      maxUnavailable: 5
   selector:
     matchLabels:
       app: cpu-metric-test
@@ -27,6 +27,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
           resources:
             limits:
               cpu: 200m

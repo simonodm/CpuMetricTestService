@@ -1,4 +1,5 @@
 ﻿
+using System.Diagnostics;
 using CpuMetricTestService.Cpu;
 
 namespace CpuMetricTestService.Middlewares
@@ -38,15 +39,20 @@ namespace CpuMetricTestService.Middlewares
 
             _logger.LogWarning("CPU usage is above 5%");
 
-            var podsResponse = await _httpClient.GetAsync("http://localhost:8080/pods");
+            var watch = new Stopwatch();
+            watch.Start();
+
+            var currentPodIp = Environment.GetEnvironmentVariable("POD_IP");
+
+            var podsResponse = await _httpClient.GetAsync($"http://{currentPodIp}:8080/pods");
             podsResponse.EnsureSuccessStatusCode();
             var pods = await podsResponse.Content.ReadFromJsonAsync<PodCpuMetricsResponse>();
             _logger.LogInformation($"Pods response: {podsResponse.Content}");
-            _logger.LogInformation($"Current pod IP: {Environment.GetEnvironmentVariable("POD_IP")}");
+            _logger.LogInformation($"Current pod IP: {currentPodIp}");
 
             var podWithLowestCpu = pods?.CpuMetrics
                 .OrderBy(p => p.CpuMetric.CpuUsagePercentage)
-                .Where(p => p.PodIP != Environment.GetEnvironmentVariable("POD_IP"))
+                .Where(p => p.PodIP != currentPodIp)
                 .FirstOrDefault();
 
             if (podWithLowestCpu != null)
@@ -71,6 +77,12 @@ namespace CpuMetricTestService.Middlewares
                 {
                     context.Response.Headers[header.Key] = header.Value.ToArray();
                 }
+
+                watch.Stop();
+
+                context.Response.Headers["x-proxied-to"] = podWithLowestCpu.PodName;
+                context.Response.Headers["x-proxied-by"] = Environment.GetEnvironmentVariable("POD_NAME");
+                context.Response.Headers["x-proxy-duration"] = watch.ElapsedMilliseconds.ToString();
 
                 await proxyResponse.Content.CopyToAsync(context.Response.Body);
                 return;

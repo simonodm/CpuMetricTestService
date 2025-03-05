@@ -4,9 +4,10 @@ import threading
 import matplotlib.pyplot as plt
 from collections import defaultdict, deque
 from matplotlib.animation import FuncAnimation
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # URLs to send requests to
-url = "http://52.226.1.10/api/loadtest?n=10"
+url = "http://52.226.1.10/api/loadtest?n=1"
 cpu_url = "http://52.226.1.10/.metrics/cpu"
 
 # Dictionary to store the counts of requests in the past 1 second
@@ -21,26 +22,36 @@ request_timestamps = defaultdict(lambda: {'true': deque(), 'false': deque()})
 # Lock for thread-safe updates to request_counts and request_timestamps
 lock = threading.Lock()
 
+def send_request():
+    try:
+        print("Sending request")
+        response = requests.get(url, timeout=1)
+        pod_name = response.headers.get('x-pod-name')
+        was_proxied = response.headers.get('x-was-proxied')
+        with lock:
+            current_time = time.time()
+            request_timestamps[pod_name][str(was_proxied).lower()].append(current_time)
+    except requests.RequestException as e:
+        print(f"Request failed: {e}")
+
 def send_requests():
     while True:
-        for i in range(10):
-            response = requests.get(url)
-            pod_name = 'test_pod' if i % 2 == 0 else 'test_pod_2'  # response.headers.get('x-pod-name')
-            was_proxied = i % 3 == 0  # response.headers.get('x-was-proxied')
-            with lock:
-                current_time = time.time()
-                request_timestamps[pod_name][str(was_proxied).lower()].append(current_time)
-        time.sleep(1)
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            futures = [executor.submit(send_request) for _ in range(10)]
+            for future in as_completed(futures):
+                future.result()
+        time.sleep(2)
 
 def send_cpu_requests():
     while True:
-        for i in range(5):
-            response = requests.get(cpu_url)
+        try:
+            response = requests.get(cpu_url, timeout=1)
             data = response.json()
-            pod_name = 'test_pod' if i % 2 == 0 else 'test_pod_2' #response.headers.get('x-pod-name')
-            if pod_name:
-                with lock:
-                    cpu_usage[pod_name] = data['cpuUsagePercentage']
+            pod_name = response.headers.get('x-pod-name')
+            with lock:
+                cpu_usage[pod_name] = data['cpuUsagePercentage']
+        except requests.RequestException as e:
+            print(f"CPU request failed: {e}")
         time.sleep(1)
 
 def update_chart(frame):
@@ -52,7 +63,7 @@ def update_chart(frame):
         for pod_name in request_timestamps:
             for proxied_status in ['true', 'false']:
                 # Remove timestamps older than 1 second
-                while request_timestamps[pod_name][proxied_status] and current_time - request_timestamps[pod_name][proxied_status][0] > 1:
+                while request_timestamps[pod_name][proxied_status] and current_time - request_timestamps[pod_name][proxied_status][0] > 5:
                     request_timestamps[pod_name][proxied_status].popleft()
                 # Update the count of requests in the past 1 second
                 request_counts[pod_name][proxied_status] = len(request_timestamps[pod_name][proxied_status])
@@ -70,9 +81,10 @@ def update_chart(frame):
     
     plt.xlabel('Pod Name')
     plt.ylabel('Number of Requests')
-    plt.title('Requests per Pod (Past 1 Second)')
+    plt.title('Requests per Pod (Past 5s)')
     plt.xticks(index, pod_names)
     plt.legend()
+    plt.ylim(0, 20)
 
     plt.subplot(2, 1, 2)
     cpu_values = [cpu_usage[pod] for pod in pod_names]
@@ -83,6 +95,7 @@ def update_chart(frame):
     plt.ylabel('CPU Usage')
     plt.title('CPU Usage per Pod')
     plt.xticks(index, pod_names)
+    plt.ylim(0, 100)
 
 # Start the threads to send requests
 threading.Thread(target=send_requests, daemon=True).start()
@@ -90,6 +103,6 @@ threading.Thread(target=send_cpu_requests, daemon=True).start()
 
 # Set up the plot
 fig = plt.figure()
-ani = FuncAnimation(fig, update_chart, interval=1000)
+ani = FuncAnimation(fig, update_chart, interval=30)
 
 plt.show()
