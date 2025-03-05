@@ -21,6 +21,7 @@ namespace CpuMetricTestService
             builder.Services.AddHttpClient();
 
             builder.Services.AddTransient<CpuProxyMiddleware>();
+            builder.Services.AddTransient<HeaderEnrichmentMiddleware>();
 
             var app = builder.Build();
 
@@ -35,8 +36,9 @@ namespace CpuMetricTestService
 
             app.UseAuthorization();
 
-
             app.MapControllers();
+
+            app.UseMiddleware<HeaderEnrichmentMiddleware>();
 
             app.Run();
         }
