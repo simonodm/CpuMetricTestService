@@ -1,4 +1,5 @@
-﻿using k8s;
+﻿using CpuMetricTestService.Middlewares;
+using k8s;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -10,6 +11,11 @@ namespace CpuMetricTestService.Controllers
     {
         private readonly HttpClient _httpClient;
 
+        // midleware
+        // check current cpu for pod
+        // check request metadata - count
+        // 
+
         public PodDiscoveryController(HttpClient httpClient)
         {
             _httpClient = httpClient;
@@ -17,6 +23,7 @@ namespace CpuMetricTestService.Controllers
 
         [HttpGet]
         [Route("/pods")]
+        [MiddlewareFilter(typeof(CpuProxyMiddlewareBuilder))]
         public async Task<IActionResult> GetPods()
         {
             try

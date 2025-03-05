@@ -1,4 +1,5 @@
 using CpuMetricTestService.Cpu;
+using CpuMetricTestService.Middlewares;
 
 namespace CpuMetricTestService
 {
@@ -18,6 +19,8 @@ namespace CpuMetricTestService
             builder.Services.AddResourceMonitoring();
             builder.Services.AddCpuEvaluators();
             builder.Services.AddHttpClient();
+
+            builder.Services.AddTransient<CpuProxyMiddleware>();
 
             var app = builder.Build();
 

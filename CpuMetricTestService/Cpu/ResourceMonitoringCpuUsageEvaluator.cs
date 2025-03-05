@@ -8,7 +8,7 @@ namespace CpuMetricTestService.Cpu
         public double GuaranteedCpuUnits { get; set; }
     }
 
-    public class ResourceMonitoringCpuUsageEvaluator : ICpuUsageEvaluator
+    public class ResourceMonitoringCpuUsageEvaluator : IResourceMonitoringCpuUsageEvaluator
     {
         private IResourceMonitor _resourceMonitor;
 
