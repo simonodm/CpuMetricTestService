@@ -2,7 +2,7 @@
 
 namespace CpuMetricTestService.Cpu
 {
-    public class ResourceMonitoringCpuUsageEvaluator : ICpuUsageEvaluator
+    public class ResourceMonitoringCpuUsageEvaluator : IResourceMonitoringCpuUsageEvaluator
     {
         private IResourceMonitor _resourceMonitor;
 
