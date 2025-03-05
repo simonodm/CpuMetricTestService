@@ -50,9 +50,9 @@ namespace CpuMetricTestService.Middlewares
 
             if (podWithLowestCpu != null)
             {
-                _logger.LogInformation($"Proxying request to pod with IP: {podWithLowestCpu.PodIP} at http://{podWithLowestCpu.PodIP}{context.Request.Path}{context.Request.QueryString}");
+                _logger.LogInformation($"Proxying request to pod with IP: {podWithLowestCpu.PodIP} at http://{podWithLowestCpu.PodIP}:8080{context.Request.Path}{context.Request.QueryString}");
 
-                var proxyRequest = new HttpRequestMessage(new HttpMethod(context.Request.Method), $"http://{podWithLowestCpu.PodIP}{context.Request.Path}{context.Request.QueryString}")
+                var proxyRequest = new HttpRequestMessage(new HttpMethod(context.Request.Method), $"http://{podWithLowestCpu.PodIP}:8080{context.Request.Path}{context.Request.QueryString}")
                 {
                     Content = new StreamContent(context.Request.Body)
                 };
