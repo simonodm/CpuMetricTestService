@@ -27,7 +27,7 @@ def send_request():
         print("Sending request")
         response = requests.get(url, timeout=1)
         pod_name = response.headers.get('x-pod-name')
-        was_proxied = response.headers.get('x-was-proxied')
+        was_proxied = response.headers.get('x-proxied-to') == pod_name
         with lock:
             current_time = time.time()
             request_timestamps[pod_name][str(was_proxied).lower()].append(current_time)
@@ -76,8 +76,8 @@ def update_chart(frame):
     index = range(len(pod_names))
     
     plt.subplot(2, 1, 1)
-    plt.bar(index, true_counts, bar_width, label='Proxied=True', color='r')
-    plt.bar(index, false_counts, bar_width, bottom=true_counts, label='Proxied=False', color='b')
+    plt.bar(index, true_counts, bar_width, label='Proxied request = True', color='r')
+    plt.bar(index, false_counts, bar_width, bottom=true_counts, label='Proxied request = False', color='b')
     
     plt.xlabel('Pod Name')
     plt.ylabel('Number of Requests')

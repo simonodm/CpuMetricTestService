@@ -84,7 +84,9 @@ namespace CpuMetricTestService.Middlewares
                 context.Response.Headers["x-proxied-by"] = Environment.GetEnvironmentVariable("POD_NAME");
                 context.Response.Headers["x-proxy-duration"] = watch.ElapsedMilliseconds.ToString();
 
-                await proxyResponse.Content.CopyToAsync(context.Response.Body);
+                var responseContent = await proxyResponse.Content.ReadAsByteArrayAsync();
+                await context.Response.Body.WriteAsync(responseContent, 0, responseContent.Length);
+
                 return;
                 
             }
