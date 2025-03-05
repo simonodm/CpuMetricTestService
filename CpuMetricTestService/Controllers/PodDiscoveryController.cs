@@ -8,6 +8,13 @@ namespace CpuMetricTestService.Controllers
     [Route("[controller]")]
     public class PodDiscoveryController : ControllerBase
     {
+        private readonly HttpClient _httpClient;
+
+        public PodDiscoveryController(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+        }
+
         [HttpGet]
         [Route("/pods")]
         public async Task<IActionResult> GetPods()
@@ -27,10 +34,20 @@ namespace CpuMetricTestService.Controllers
                 {
                     return NoContent();
                 }
-;
+
+                var podCpuMetrics = new List<object>();
+                foreach (var pod in pods.Items)
+                {
+                    var podIp = pod.Status.PodIP;
+                    var cpuMetric = await _httpClient.GetFromJsonAsync<object>($"http://{podIp}/.metrics/cpu");
+                    podCpuMetrics.Add(new { PodName = pod.Metadata.Name, PodIP = podIp, CpuMetric = cpuMetric });
+                }
+
                 return Ok(new
                 {
                     Pods = pods.Items.Select(a => JsonSerializer.Serialize(a, new JsonSerializerOptions { WriteIndented = true })),
+                    IPs = pods.Items.Select(p => p.Status.PodIPs),
+                    CpuMetrics = podCpuMetrics,
                     Info = $"There are {pods.Items.Count} pods available. This request hit pod {currentPodName} {hostName}. All available pods are: {string.Join(", ", pods.Items.Select(a => a.Metadata.Name))}"
                 });
             }
