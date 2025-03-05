@@ -27,9 +27,9 @@ namespace CpuMetricTestService.Middlewares
                 return;
             }
            
-            var cpuUsage = await _cpuUsageEvaluator.EvaluateAsync();
-            _logger.LogInformation($"CPU usage current pod {cpuUsage}");
-            if (cpuUsage == null || (double?)cpuUsage <= 5)
+            var cpuUsage = (ResourceMonitoringCpuUsageResult?)await _cpuUsageEvaluator.EvaluateAsync();
+            _logger.LogInformation($"CPU usage current pod {cpuUsage?.CpuUsagePercentage}");
+            if (cpuUsage == null || cpuUsage.CpuUsagePercentage <= 5)
             {
                 _logger.LogInformation($"CPU usage too low to proxy");
                 await next(context);

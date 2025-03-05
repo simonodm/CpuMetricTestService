@@ -1,4 +1,5 @@
 ﻿using CpuMetricTestService.Cpu;
+using CpuMetricTestService.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CpuMetricTestService.Controllers
@@ -14,8 +15,8 @@ namespace CpuMetricTestService.Controllers
             _serviceProvider = serviceProvider;
         }
 
-        [HttpGet("cpu")]
-        public async Task<IActionResult> GetCpu()
+        [HttpGet("debug")]
+        public async Task<IActionResult> GetDebug()
         {
             var evaluators = _serviceProvider.GetServices<ICpuUsageEvaluator>();
 
@@ -23,11 +24,28 @@ namespace CpuMetricTestService.Controllers
 
             foreach (var evaluator in evaluators)
             {
-                var value = await evaluator.EvaluateAsync();
-                result.Add(evaluator.GetType().Name, value);
+                try
+                {
+                    var value = await evaluator.EvaluateAsync();
+                    result.Add(evaluator.GetType().Name, value);
+                }
+                catch (Exception ex)
+                {
+                    result.Add(evaluator.GetType().Name, ex.ToString());
+                }
             }
 
-            return Ok(result);
+            return Ok(new CpuUsageStatistics
+            {
+                Sources = result
+            });
+        }
+
+        [HttpGet("cpu")]
+        public async Task<IActionResult> GetCpu()
+        {
+            var evaluator = _serviceProvider.GetServices<ICpuUsageEvaluator>().FirstOrDefault(s => s.GetType() == typeof(ResourceMonitoringCpuUsageEvaluator));
+            return Ok(await evaluator.EvaluateAsync());
         }
     }
 }

@@ -2,6 +2,12 @@
 
 namespace CpuMetricTestService.Cpu
 {
+    public class ResourceMonitoringCpuUsageResult
+    {
+        public double CpuUsagePercentage { get; set; }
+        public double GuaranteedCpuUnits { get; set; }
+    }
+
     public class ResourceMonitoringCpuUsageEvaluator : IResourceMonitoringCpuUsageEvaluator
     {
         private IResourceMonitor _resourceMonitor;
@@ -14,7 +20,11 @@ namespace CpuMetricTestService.Cpu
         public Task<object?> EvaluateAsync()
         {
             var utilization = _resourceMonitor.GetUtilization(TimeSpan.FromSeconds(5));
-            return Task.FromResult<object?>(utilization.CpuUsedPercentage);
+            return Task.FromResult<object?>(new ResourceMonitoringCpuUsageResult
+            {
+                CpuUsagePercentage = utilization.CpuUsedPercentage,
+                GuaranteedCpuUnits = utilization.SystemResources.GuaranteedCpuUnits
+            });
         }
     }
 }
