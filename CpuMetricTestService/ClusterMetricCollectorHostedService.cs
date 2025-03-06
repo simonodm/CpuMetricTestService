@@ -16,7 +16,7 @@
         {
             _logger.LogInformation($"{nameof(ClusterMetricCollectorHostedService)} is starting.");
 
-            _timer = new Timer(Execute, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+            _timer = new Timer(Execute, null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
 
             return Task.CompletedTask;
         }
