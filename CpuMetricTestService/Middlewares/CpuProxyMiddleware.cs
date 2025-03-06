@@ -1,7 +1,6 @@
 ﻿
-using System.Diagnostics;
-using System.Text;
 using CpuMetricTestService.Cpu;
+using System.Diagnostics;
 
 namespace CpuMetricTestService.Middlewares
 {
@@ -84,12 +83,12 @@ namespace CpuMetricTestService.Middlewares
                 context.Response.Headers["x-proxied-by"] = Environment.GetEnvironmentVariable("POD_NAME");
                 context.Response.Headers["x-proxy-duration"] = watch.ElapsedMilliseconds.ToString();
 
-                var responseContent = await proxyResponse.Content.ReadAsByteArrayAsync();
+                var proxyResponseContent = await proxyResponse.Content.ReadAsStringAsync();
 
-                _logger.LogInformation($"Proxy response: {Encoding.UTF8.GetString(responseContent)}");
+                _logger.LogInformation($"Proxy response: {proxyResponseContent}");
                 _logger.LogInformation($"Headers: {string.Join(";", context.Response.Headers.Select(h => h.Key + ":" + h.Value))}");
 
-                await context.Response.Body.WriteAsync(responseContent, 0, responseContent.Length);
+                await context.Response.WriteAsync(proxyResponseContent);
 
                 return;
                 
