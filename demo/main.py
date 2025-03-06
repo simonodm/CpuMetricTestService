@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # URLs to send requests to
 url = "http://52.226.1.10/api/loadtest?n=1"
-cpu_url = "http://52.226.1.10/.metrics/cpu"
+cpu_url = "http://52.226.1.10/.metrics/clusterHealth"
 
 # Dictionary to store the counts of requests in the past 1 second
 request_counts = defaultdict(lambda: {'true': 0, 'false': 0})
@@ -27,7 +27,7 @@ def send_request():
         print("Sending request")
         response = requests.get(url, timeout=1)
         pod_name = response.headers.get('x-pod-name')
-        was_proxied = response.headers.get('x-proxied-to') == pod_name
+        was_proxied = response.headers.get('x-proxied-by') == pod_name
         with lock:
             current_time = time.time()
             request_timestamps[pod_name][str(was_proxied).lower()].append(current_time)
@@ -36,20 +36,20 @@ def send_request():
 
 def send_requests():
     while True:
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            futures = [executor.submit(send_request) for _ in range(10)]
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [executor.submit(send_request) for _ in range(5)]
             for future in as_completed(futures):
                 future.result()
-        time.sleep(2)
+        time.sleep(1)
 
 def send_cpu_requests():
     while True:
         try:
             response = requests.get(cpu_url, timeout=1)
             data = response.json()
-            pod_name = response.headers.get('x-pod-name')
             with lock:
-                cpu_usage[pod_name] = data['cpuUsagePercentage']
+                for pod in data['podCpuUsage']:
+                    cpu_usage[pod] = data['podCpuUsage'][pod]["cpuUsage"]
         except requests.RequestException as e:
             print(f"CPU request failed: {e}")
         time.sleep(1)
@@ -76,8 +76,8 @@ def update_chart(frame):
     index = range(len(pod_names))
     
     plt.subplot(2, 1, 1)
-    plt.bar(index, true_counts, bar_width, label='Proxied request = True', color='r')
-    plt.bar(index, false_counts, bar_width, bottom=true_counts, label='Proxied request = False', color='b')
+    plt.bar(index, true_counts, bar_width, label='Proxied', color='r')
+    plt.bar(index, false_counts, bar_width, bottom=true_counts, label='Not proxied', color='b')
     
     plt.xlabel('Pod Name')
     plt.ylabel('Number of Requests')
