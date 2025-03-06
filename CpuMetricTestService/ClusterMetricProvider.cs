@@ -39,10 +39,19 @@ namespace CpuMetricTestService
 
             foreach (var pod in pods)
             {
-                var cpuUsage = await httpClient.GetFromJsonAsync<ResourceMonitoringCpuUsageResult?>($"http://{pod.Status.PodIP}:8080/.metrics/cpu");
-                if (cpuUsage != null)
+                try
                 {
-                    result.PodCpuUsage.Add(pod.Metadata.Name, cpuUsage.CpuUsagePercentage);
+                    var cpuUsage =
+                        await httpClient.GetFromJsonAsync<ResourceMonitoringCpuUsageResult?>(
+                            $"http://{pod.Status.PodIP}:8080/.metrics/cpu");
+                    if (cpuUsage != null)
+                    {
+                        result.PodCpuUsage.Add(pod.Metadata.Name, cpuUsage.CpuUsagePercentage);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Failed to retrieve CPU usage of {pod.Metadata.Name}");
                 }
             }
 

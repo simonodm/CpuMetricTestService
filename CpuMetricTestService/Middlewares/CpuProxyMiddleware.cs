@@ -79,18 +79,17 @@ namespace CpuMetricTestService.Middlewares
                     context.Response.Headers[header.Key] = header.Value.ToArray();
                 }
 
+                watch.Stop();
+
                 context.Response.Headers["x-proxied-to"] = podWithLowestCpu.PodName;
                 context.Response.Headers["x-proxied-by"] = Environment.GetEnvironmentVariable("POD_NAME");
-                
+                context.Response.Headers["x-proxy-duration"] = watch.ElapsedMilliseconds.ToString();
 
                 var responseContent = await proxyResponse.Content.ReadAsByteArrayAsync();
 
                 _logger.LogInformation($"Proxy response: {Encoding.UTF8.GetString(responseContent)}");
 
                 await context.Response.Body.WriteAsync(responseContent, 0, responseContent.Length);
-
-                watch.Stop();
-                context.Response.Headers["x-proxy-duration"] = watch.ElapsedMilliseconds.ToString();
 
                 return;
                 
