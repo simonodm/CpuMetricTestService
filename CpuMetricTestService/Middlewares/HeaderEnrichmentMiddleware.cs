@@ -13,7 +13,7 @@
         {
             context.Response.OnStarting(() =>
             {
-                context.Response.Headers.TryAdd("x-pod-name", Environment.GetEnvironmentVariable("POD_NAME"));
+                context.Response.Headers["x-pod-name"] = Environment.GetEnvironmentVariable("POD_NAME");
                 return Task.CompletedTask;
             });
 
