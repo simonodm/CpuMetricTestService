@@ -10,10 +10,12 @@ namespace CpuMetricTestService.Middlewares
         private readonly HttpClient _httpClient;
         private readonly ILogger<CpuProxyMiddleware> _logger;
         private readonly IResourceMonitoringCpuUsageEvaluator _cpuUsageEvaluator;
+        private readonly ClusterMetricProvider _clusterMetricProvider;
 
-        public CpuProxyMiddleware(IResourceMonitoringCpuUsageEvaluator cpuUsageEvaluator, HttpClient httpClient, ILogger<CpuProxyMiddleware> logger)
+        public CpuProxyMiddleware(IResourceMonitoringCpuUsageEvaluator cpuUsageEvaluator, ClusterMetricProvider clusterMetricProvider, HttpClient httpClient, ILogger<CpuProxyMiddleware> logger)
         {
             _cpuUsageEvaluator = cpuUsageEvaluator;
+            _clusterMetricProvider = clusterMetricProvider;
             _httpClient = httpClient;
             _logger = logger;
         }
@@ -44,23 +46,20 @@ namespace CpuMetricTestService.Middlewares
             watch.Start();
 
             var currentPodIp = Environment.GetEnvironmentVariable("POD_IP");
-
-            var podsResponse = await _httpClient.GetAsync($"http://{currentPodIp}:8080/pods");
-            podsResponse.EnsureSuccessStatusCode();
-            var pods = await podsResponse.Content.ReadFromJsonAsync<PodCpuMetricsResponse>();
-            _logger.LogInformation($"Pods response: {podsResponse.Content}");
+            var clusterHealth = _clusterMetricProvider.GetClusterMetrics();
+            
             _logger.LogInformation($"Current pod IP: {currentPodIp}");
 
-            var podWithLowestCpu = pods?.CpuMetrics
-                .OrderBy(p => p.CpuMetric.CpuUsagePercentage)
-                .Where(p => p.PodIP != currentPodIp)
-                .FirstOrDefault();
+            var podWithLowestCpu = clusterHealth
+                .PodCpuUsage
+                .OrderBy(p => p.Value.CpuUsage)
+                .FirstOrDefault(p => p.Value.PodIp != currentPodIp);
 
-            if (podWithLowestCpu != null)
+            if (podWithLowestCpu.Value != null)
             {
-                _logger.LogInformation($"Proxying request to pod with IP: {podWithLowestCpu.PodIP} at http://{podWithLowestCpu.PodIP}:8080{context.Request.Path}{context.Request.QueryString}");
+                _logger.LogInformation($"Proxying request to pod with IP: {podWithLowestCpu.Value.PodIp} at http://{podWithLowestCpu.Value.PodIp}:8080{context.Request.Path}{context.Request.QueryString}");
 
-                var proxyRequest = new HttpRequestMessage(new HttpMethod(context.Request.Method), $"http://{podWithLowestCpu.PodIP}:8080{context.Request.Path}{context.Request.QueryString}")
+                var proxyRequest = new HttpRequestMessage(new HttpMethod(context.Request.Method), $"http://{podWithLowestCpu.Value.PodIp}:8080{context.Request.Path}{context.Request.QueryString}")
                 {
                     Content = new StreamContent(context.Request.Body)
                 };
@@ -81,13 +80,14 @@ namespace CpuMetricTestService.Middlewares
 
                 watch.Stop();
 
-                context.Response.Headers["x-proxied-to"] = podWithLowestCpu.PodName;
+                context.Response.Headers["x-proxied-to"] = podWithLowestCpu.Key; // pod name
                 context.Response.Headers["x-proxied-by"] = Environment.GetEnvironmentVariable("POD_NAME");
                 context.Response.Headers["x-proxy-duration"] = watch.ElapsedMilliseconds.ToString();
 
                 var responseContent = await proxyResponse.Content.ReadAsByteArrayAsync();
 
                 _logger.LogInformation($"Proxy response: {Encoding.UTF8.GetString(responseContent)}");
+                _logger.LogInformation($"Headers: {context.Response.Headers}");
 
                 await context.Response.Body.WriteAsync(responseContent, 0, responseContent.Length);
 

@@ -7,7 +7,13 @@ namespace CpuMetricTestService
     {
         public DateTime Timestamp { get; set; }
         public double ClusterCpuUsage { get; set; }
-        public Dictionary<string, double> PodCpuUsage { get; set; } = new Dictionary<string, double>();
+        public Dictionary<string, PodCpuUsage> PodCpuUsage { get; set; } = new Dictionary<string, PodCpuUsage>();
+    }
+
+    public class PodCpuUsage
+    {
+        public double CpuUsage { get; set; }
+        public string PodIp { get; set; } = string.Empty;
     }
 
     public class ClusterMetricProvider
@@ -46,7 +52,7 @@ namespace CpuMetricTestService
                             $"http://{pod.Status.PodIP}:8080/.metrics/cpu");
                     if (cpuUsage != null)
                     {
-                        result.PodCpuUsage.Add(pod.Metadata.Name, cpuUsage.CpuUsagePercentage);
+                        result.PodCpuUsage.Add(pod.Metadata.Name, new PodCpuUsage { PodIp = pod.Status.PodIP, CpuUsage = cpuUsage.CpuUsagePercentage });
                     }
                 }
                 catch (Exception ex)
@@ -56,7 +62,7 @@ namespace CpuMetricTestService
             }
 
             result.Timestamp = DateTime.UtcNow;
-            result.ClusterCpuUsage = CalculateClusterCpuUsage(result.PodCpuUsage.Values.ToList());
+            result.ClusterCpuUsage = CalculateClusterCpuUsage(result.PodCpuUsage.Values.Select(x => x.CpuUsage).ToList());
 
             _clusterMetrics = result;
         }

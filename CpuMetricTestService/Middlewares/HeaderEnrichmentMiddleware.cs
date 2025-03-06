@@ -11,8 +11,6 @@
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            _logger.LogInformation("Invoking HeaderEnrichmentMiddleware");
-
             context.Response.OnStarting(() =>
             {
                 context.Response.Headers.TryAdd("x-pod-name", Environment.GetEnvironmentVariable("POD_NAME"));
