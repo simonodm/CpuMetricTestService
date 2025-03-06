@@ -72,7 +72,9 @@ namespace CpuMetricTestService.Middlewares
                 var proxyResponse = await _httpClient.SendAsync(proxyRequest);
 
                 context.Response.StatusCode = (int)proxyResponse.StatusCode;
-                foreach (var header in proxyResponse.Headers)
+
+                // Filtering out Transfer-Encoding: https://github.com/dotnet/aspnetcore/issues/25448#issuecomment-684035126
+                foreach (var header in proxyResponse.Headers.Where(h => h.Key != "Transfer-Encoding"))
                 {
                     context.Response.Headers[header.Key] = header.Value.ToArray();
                 }
