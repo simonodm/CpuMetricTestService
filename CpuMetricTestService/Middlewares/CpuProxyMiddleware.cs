@@ -49,6 +49,15 @@ namespace CpuMetricTestService.Middlewares
             
             _logger.LogInformation($"Current pod IP: {currentPodIp}");
 
+            var secondaryClusterIp = Environment.GetEnvironmentVariable("SECONDARY_CLUSTER_IP");;
+            if (!string.IsNullOrEmpty(secondaryClusterIp) && clusterHealth.ClusterCpuUsage > 50)
+            {
+                _logger.LogInformation($"Cluster CPU usage is above 50%, redirecting to {secondaryClusterIp}");
+                context.Response.Redirect($"http://{secondaryClusterIp}{context.Request.Path}{context.Request.QueryString}");
+                watch.Stop();
+                return;
+            }
+
             var podWithLowestCpu = clusterHealth
                 .PodCpuUsage
                 .OrderBy(p => p.Value.CpuUsage)

@@ -32,7 +32,7 @@ spec:
                 fieldRef:
                   fieldPath: status.podIP
             - name: SECONDARY_CLUSTER_IP
-              value: 128.203.73.89
+              value: 52.226.1.10
           resources:
             limits:
               cpu: 200m

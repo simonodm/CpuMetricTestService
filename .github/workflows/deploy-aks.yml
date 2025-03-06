@@ -44,7 +44,6 @@ env:
   CLUSTER_NAME_SECONDARY: aks-rapi-cpu-experiments-secondary
   CLUSTER_RESOURCE_GROUP: aks-rapi-cpu-experiments_group
   CLUSTER_RESOURCE_TYPE: Microsoft.ContainerService/managedClusters
-  DEPLOYMENT_MANIFEST_PATH: ./CpuMetricTestService/manifest.yaml
   DOCKER_FILE: ./CpuMetricTestService/Dockerfile
   BUILD_CONTEXT_PATH: ./
   NAMESPACE: rapi-cpu-experiments
@@ -82,6 +81,11 @@ jobs:
     strategy:
       matrix:
         cluster_name: [aks-rapi-cpu-experiments, aks-rapi-cpu-experiments-secondary]
+        include:
+          - cluster_name: aks-rapi-cpu-experiments
+            manifest: ./CpuMetricTestService/manifest.yaml
+          - cluster_name: aks-rapi-cpu-experiments-secondary
+            manifest: ./CpuMetricTestService/manifest_secondary.yaml
     steps:
       # Checks out the repository this file is in
       - uses: actions/checkout@v3
@@ -154,7 +158,7 @@ jobs:
         uses: Azure/k8s-deploy@v5
         with:
           action: deploy
-          manifests: ${{ env.DEPLOYMENT_MANIFEST_PATH }}
+          manifests: ${{ matrix.manifest }}
           images: |
             ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }}
           resource-group: ${{ env.CLUSTER_RESOURCE_GROUP }}
