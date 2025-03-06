@@ -41,7 +41,7 @@ env:
   ACR_RESOURCE_GROUP: fhl-202503
   AZURE_CONTAINER_REGISTRY: acrfhl202503
   CONTAINER_NAME: cpu-metric-test
-  CLUSTER_NAME: aks-rapi-cpu-experiments
+  CLUSTER_NAME_SECONDARY: aks-rapi-cpu-experiments-secondary
   CLUSTER_RESOURCE_GROUP: aks-rapi-cpu-experiments_group
   CLUSTER_RESOURCE_TYPE: Microsoft.ContainerService/managedClusters
   DEPLOYMENT_MANIFEST_PATH: ./CpuMetricTestService/manifest.yaml
@@ -79,6 +79,9 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     needs: [buildImage]
+    strategy:
+      matrix:
+        cluster_name: [aks-rapi-cpu-experiments, aks-rapi-cpu-experiments-secondary]
     steps:
       # Checks out the repository this file is in
       - uses: actions/checkout@v3
@@ -102,7 +105,7 @@ jobs:
         uses: azure/aks-set-context@v4
         with:
           resource-group: ${{ env.CLUSTER_RESOURCE_GROUP }}
-          cluster-name: ${{ env.CLUSTER_NAME }}
+          cluster-name: ${{ matrix.cluster_name }}
           admin: 'false'
           use-kubelogin: 'true'
           resource-type: ${{ env.CLUSTER_RESOURCE_TYPE }}
@@ -112,7 +115,7 @@ jobs:
         if: ${{ env.CLUSTER_RESOURCE_TYPE != 'Microsoft.ContainerService/fleets' }}
         id: isPrivate
         run: |
-          result=$(az aks show --resource-group ${{ env.CLUSTER_RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --query "apiServerAccessProfile.enablePrivateCluster")
+          result=$(az aks show --resource-group ${{ env.CLUSTER_RESOURCE_GROUP }} --name ${{ matrix.cluster_name }} --query "apiServerAccessProfile.enablePrivateCluster")
           echo "PRIVATE_CLUSTER=$result" >> "$GITHUB_OUTPUT"
 
       # Create Namespace
@@ -120,10 +123,10 @@ jobs:
         if: ${{ env.ENABLENAMESPACECREATION == 'true' }}
         run: |
           if [ ${{ steps.isPrivate.outputs.PRIVATE_CLUSTER}} == 'true' ]; then
-            command_id=$(az aks command invoke --resource-group ${{ env.CLUSTER_RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --command "kubectl get namespace ${{ env.NAMESPACE }} || kubectl create namespace ${{ env.NAMESPACE }}" --query id -o tsv)
-            result=$(az aks command result --resource-group ${{ env.CLUSTER_RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --command-id $command_id)
+            command_id=$(az aks command invoke --resource-group ${{ env.CLUSTER_RESOURCE_GROUP }} --name ${{ matrix.cluster_name }} --command "kubectl get namespace ${{ env.NAMESPACE }} || kubectl create namespace ${{ env.NAMESPACE }}" --query id -o tsv)
+            result=$(az aks command result --resource-group ${{ env.CLUSTER_RESOURCE_GROUP }} --name ${{ matrix.cluster_name }} --command-id $command_id)
             echo "Command Result: $result"
-            exitCode=$(az aks command result --resource-group ${{ env.CLUSTER_RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --command-id $command_id --query exitCode -o tsv)
+            exitCode=$(az aks command result --resource-group ${{ env.CLUSTER_RESOURCE_GROUP }} --name ${{ matrix.cluster_name }} --command-id $command_id --query exitCode -o tsv)
             if [ $exitCode -ne 0 ]; then
               exit $exitCode
             fi
@@ -135,10 +138,10 @@ jobs:
       - name: Validate Namespace Exists
         run: |
           if [ ${{ steps.isPrivate.outputs.PRIVATE_CLUSTER}} == 'true' ]; then
-            command_id=$(az aks command invoke --resource-group ${{ env.CLUSTER_RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --command "kubectl get namespace ${{ env.NAMESPACE }}" --query id -o tsv)
-            result=$(az aks command result --resource-group ${{ env.CLUSTER_RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --command-id $command_id)
+            command_id=$(az aks command invoke --resource-group ${{ env.CLUSTER_RESOURCE_GROUP }} --name ${{ matrix.cluster_name }} --command "kubectl get namespace ${{ env.NAMESPACE }}" --query id -o tsv)
+            result=$(az aks command result --resource-group ${{ env.CLUSTER_RESOURCE_GROUP }} --name ${{ matrix.cluster_name }} --command-id $command_id)
             echo "Command Result: $result"
-            exitCode=$(az aks command result --resource-group ${{ env.CLUSTER_RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --command-id $command_id --query exitCode -o tsv)
+            exitCode=$(az aks command result --resource-group ${{ env.CLUSTER_RESOURCE_GROUP }} --name ${{ matrix.cluster_name }} --command-id $command_id --query exitCode -o tsv)
             if [ $exitCode -ne 0 ]; then
               exit $exitCode
             fi
@@ -155,7 +158,7 @@ jobs:
           images: |
             ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }}
           resource-group: ${{ env.CLUSTER_RESOURCE_GROUP }}
-          name: ${{ env.CLUSTER_NAME }}
+          name: ${{ matrix.cluster_name }}
           private-cluster: ${{ steps.isPrivate.outputs.PRIVATE_CLUSTER == 'true' }}
           namespace: ${{ env.NAMESPACE }}
           resource-type: ${{ env.CLUSTER_RESOURCE_TYPE }}
