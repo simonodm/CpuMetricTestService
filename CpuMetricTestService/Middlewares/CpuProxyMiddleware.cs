@@ -87,7 +87,7 @@ namespace CpuMetricTestService.Middlewares
                 var responseContent = await proxyResponse.Content.ReadAsByteArrayAsync();
 
                 _logger.LogInformation($"Proxy response: {Encoding.UTF8.GetString(responseContent)}");
-                _logger.LogInformation($"Headers: {context.Response.Headers}");
+                _logger.LogInformation($"Headers: {string.Join(";", context.Response.Headers.Select(h => h.Key + ":" + h.Value))}");
 
                 await context.Response.Body.WriteAsync(responseContent, 0, responseContent.Length);
 
