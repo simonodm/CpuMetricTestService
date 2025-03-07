@@ -62,7 +62,7 @@ metadata:
 data:
   config.yml: |
     collectors:
-      enabled: '[defaults],container'
+      enabled: '[defaults],container,memory,process,cpuinfo'
     collector:
       service:
         include: "containerd|kubelet"

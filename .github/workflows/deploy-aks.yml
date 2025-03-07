@@ -86,7 +86,7 @@ jobs:
             manifest: ./CpuMetricTestService/manifest.yaml
           - cluster_name: aks-rapi-cpu-experiments-secondary
             manifest: ./CpuMetricTestService/manifest_secondary.yaml
-          - cluster_name: aks-rapi-cpu-experiments-primary
+          - cluster_name: rapi-cpu-experiments-primary
             manifest: ./CpuMetricTestService/manifest.yaml
     steps:
       # Checks out the repository this file is in
