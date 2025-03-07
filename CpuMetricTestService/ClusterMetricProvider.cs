@@ -43,6 +43,8 @@ namespace CpuMetricTestService
 
             using var httpClient = _httpClientFactory.CreateClient();
 
+            var currentPodName = Environment.GetEnvironmentVariable("POD_NAME");
+
             foreach (var pod in pods)
             {
                 try
@@ -52,7 +54,12 @@ namespace CpuMetricTestService
                             $"http://{pod.Status.PodIP}:8080/.metrics/cpu");
                     if (cpuUsage != null)
                     {
-                        result.PodCpuUsage.Add(pod.Metadata.Name, new PodCpuUsage { PodIp = pod.Status.PodIP, CpuUsage = cpuUsage.CpuUsagePercentage });
+                        result.PodCpuUsage.Add(pod.Metadata.Name,
+                            new PodCpuUsage { PodIp = pod.Status.PodIP, CpuUsage = cpuUsage.CpuUsagePercentage });
+                        if (pod.Metadata.Name == currentPodName)
+                        {
+                            PrometheusMetrics.PodCpuUsagePercentage.Set(cpuUsage.CpuUsagePercentage);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -63,6 +70,8 @@ namespace CpuMetricTestService
 
             result.Timestamp = DateTime.UtcNow;
             result.ClusterCpuUsage = CalculateClusterCpuUsage(result.PodCpuUsage.Values.Select(x => x.CpuUsage).ToList());
+
+            PrometheusMetrics.ClusterCpuUsagePercentage.Set(result.ClusterCpuUsage);
 
             _clusterMetrics = result;
         }
