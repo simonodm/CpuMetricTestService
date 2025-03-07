@@ -80,7 +80,7 @@ jobs:
     needs: [buildImage]
     strategy:
       matrix:
-        cluster_name: [aks-rapi-cpu-experiments, aks-rapi-cpu-experiments-secondary, aks-rapi-cpu-experiments-primary]
+        cluster_name: [aks-rapi-cpu-experiments, aks-rapi-cpu-experiments-secondary, rapi-cpu-experiments-primary]
         include:
           - cluster_name: aks-rapi-cpu-experiments
             manifest: ./CpuMetricTestService/manifest.yaml
