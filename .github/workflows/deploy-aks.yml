@@ -80,12 +80,14 @@ jobs:
     needs: [buildImage]
     strategy:
       matrix:
-        cluster_name: [aks-rapi-cpu-experiments, aks-rapi-cpu-experiments-secondary]
+        cluster_name: [aks-rapi-cpu-experiments, aks-rapi-cpu-experiments-secondary, aks-rapi-cpu-experiments-primary]
         include:
           - cluster_name: aks-rapi-cpu-experiments
             manifest: ./CpuMetricTestService/manifest.yaml
           - cluster_name: aks-rapi-cpu-experiments-secondary
             manifest: ./CpuMetricTestService/manifest_secondary.yaml
+          - cluster_name: aks-rapi-cpu-experiments-primary
+            manifest: ./CpuMetricTestService/manifest.yaml
     steps:
       # Checks out the repository this file is in
       - uses: actions/checkout@v3
