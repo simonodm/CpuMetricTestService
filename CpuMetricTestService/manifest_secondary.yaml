@@ -15,6 +15,9 @@ spec:
     metadata:
       labels:
         app: cpu-metric-test
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
     spec:
       serviceAccountName: cpu-metric-test-svc
       containers:
