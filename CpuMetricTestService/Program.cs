@@ -1,5 +1,6 @@
 using CpuMetricTestService.Cpu;
 using CpuMetricTestService.Middlewares;
+using Prometheus;
 
 namespace CpuMetricTestService
 {
@@ -29,6 +30,8 @@ namespace CpuMetricTestService
 
             var app = builder.Build();
 
+            app.UseMetricServer();
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -37,6 +40,11 @@ namespace CpuMetricTestService
             }
 
             app.UseHttpsRedirection();
+
+            app.UseHttpMetrics(o =>
+            {
+                o.AddCustomLabel("pod_name", _ => Environment.GetEnvironmentVariable("POD_NAME") ?? string.Empty);
+            });
 
             app.UseAuthorization();
 

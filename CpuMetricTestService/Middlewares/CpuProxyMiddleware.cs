@@ -26,6 +26,7 @@ namespace CpuMetricTestService.Middlewares
             if (context.Request.Headers.TryGetValue("WasAlreadyCpuProxied", out var wasAlreadyCpuProxied) && wasAlreadyCpuProxied == "true")
             {
                 _logger.LogInformation("Request was already CPU proxied. Will not be proxied again");
+                PrometheusMetrics.ProxyRequestsReceived.Inc();
                 await next(context);
                 return;
             }
@@ -54,6 +55,7 @@ namespace CpuMetricTestService.Middlewares
             {
                 _logger.LogInformation($"Cluster CPU usage is above 50%, redirecting to {secondaryClusterIp}");
                 context.Response.Redirect($"http://{secondaryClusterIp}{context.Request.Path}{context.Request.QueryString}");
+                PrometheusMetrics.RequestsRedirected.Inc();
                 watch.Stop();
                 return;
             }
@@ -100,6 +102,7 @@ namespace CpuMetricTestService.Middlewares
                 _logger.LogInformation($"Headers: {string.Join(";", context.Response.Headers.Select(h => h.Key + ":" + h.Value))}");
 
                 await context.Response.WriteAsync(proxyResponseContent);
+                PrometheusMetrics.RequestsProxied.Inc();
 
                 return;
                 

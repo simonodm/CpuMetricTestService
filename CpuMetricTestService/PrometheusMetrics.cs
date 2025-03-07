@@ -1,0 +1,14 @@
+﻿using Prometheus;
+
+namespace CpuMetricTestService
+{
+    public static class PrometheusMetrics
+    {
+        public static readonly Counter RequestsProxied = Metrics.CreateCounter("requests_proxied",
+            "Number of requests proxied from this pod");
+        public static readonly Counter ProxyRequestsReceived = Metrics.CreateCounter("proxy_requests_received",
+            "Number of proxied requests received by this pod");
+        public static readonly Counter RequestsRedirected =
+            Metrics.CreateCounter("redirected_requests", "Number of requests redirected from this pod");
+    }
+}
