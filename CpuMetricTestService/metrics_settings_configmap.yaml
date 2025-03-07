@@ -35,7 +35,7 @@ data:
   # This is none by default.
   # Ex: Use 'namespace1|namespace2' to scrape the pods in the namespaces 'namespace1' and 'namespace2'.
   pod-annotation-based-scraping: |-
-    podannotationnamespaceregex = ""
+    podannotationnamespaceregex = "rapi-cpu-experiments"
   default-targets-metrics-keep-list: |-
     kubelet = ""
     coredns = ""
